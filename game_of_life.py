@@ -61,6 +61,9 @@ def render(board, *, color=False, alive = '#', dead = '-', erase=False):
 
     if erase:
         system('clear')
+    else:
+        print()
+
     for row in range(height):
         for col in range(width):
             c = board[row][col]
@@ -78,6 +81,36 @@ def render(board, *, color=False, alive = '#', dead = '-', erase=False):
         print()
 
 
+def load_from_file(filepath):
+    with open(filepath, 'r') as f:
+        file = f.read()
+
+    board = []
+    for row in file.split('\n'):
+        buf_row = []
+        for c in row:
+            if c.strip() == '':
+                continue
+            if c == '1':
+                buf_row.append(1)
+            else:
+                buf_row.append(0)
+        if buf_row != []:
+            board.append(buf_row)
+
+    for i in range(1, len(board)):
+        assert len(board[i]) == len(board[i-1]), f"Error: not all lines in the file are of the same length {i}"
+    return board
+
+
+def save_to_file(filepath, board):
+    with open(filepath, 'w') as f:
+        for row in board:
+            for c in row:
+                f.write(str(c))
+            f.write('\n' if row is not board[-1] else '')
+    return True
+
 if __name__ == '__main__':
     from os import system
     from time import sleep
@@ -89,17 +122,31 @@ if __name__ == '__main__':
     parser.add_argument('-C', '--use-color', action='store_true', help='use color when rendering')
     parser.add_argument('-R', '--refresh', '--clear', action='store_true', help='clear/refresh terminal between each rendering')
     parser.add_argument('-A', '--alive-threashold', type=float, help='probability of a cell not being alive when generating the board')
+    parser.add_argument('-D', '--frame-delay', type=float, help='delay between each render. default to 0.05 seconds.')
+    parser.add_argument('-L', '--load-from-file', help='path to file to load initial board from')
+    parser.add_argument('-S', '--save-initial-board', help='path to file to store initial board to. This option will overwrite the file if it already exists.')
+
 
     args = parser.parse_args()
-    width  = args.width if args.width else 60
-    height = args.height if args.height else 30
+
     color = args.use_color
     erase = args.refresh
     alive_threashold = args.alive_threashold if args.alive_threashold else 0.5
+    delay = args.frame_delay if args.frame_delay else 0.05
 
-    board = random_state(width, height, alive_threashold=alive_threashold)
+    if args.load_from_file:
+        board = load_from_file(args.load_from_file)
+    else:
+        width  = args.width if args.width else 60
+        height = args.height if args.height else 30
+        board = random_state(width, height, alive_threashold=alive_threashold)
+
+    if args.save_initial_board:
+        save_to_file(args.save_initial_board, board)
+
+
     render(board, color=color)
     while True:
         board = next_board_state(board)
         render(board, color=color, erase=erase)
-        sleep(0.05)
+        sleep(delay)

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 import random
-from os import system
-from time import sleep
 from colorama import init, Fore, Back, Style
 init()
 
@@ -36,15 +34,15 @@ def next_board_state(board):
     for row in range(len(board)):
         for col in range(len(board[0])):
             sum = 0
-            sum += board[row+1][col-1] if row < height-1 and col > 0 else 0
-            sum += board[row+1][col] if row < height-1 else 0
-            sum += board[row+1][col+1] if row < height-1 and col < width-1 else 0
-            sum += board[row][col-1] if col > 0 else 0
+            sum += try_board_coord(board, row+1, col-1)
+            sum += try_board_coord(board, row+1, col)
+            sum += try_board_coord(board, row+1, col+1)
+            sum += try_board_coord(board, row, col-1)
 
-            sum += board[row][col+1] if col < width-1 else 0
-            sum += board[row-1][col-1] if row > 0 and col > 0 else 0
-            sum += board[row-1][col] if row > 0 else 0
-            sum += board[row-1][col+1] if row > 0 and col < width-1 else 0
+            sum += try_board_coord(board, row, col+1)
+            sum += try_board_coord(board, row-1, col-1)
+            sum += try_board_coord(board, row-1, col)
+            sum += try_board_coord(board, row-1, col+1)
             if sum == 0 or sum == 1:
                 next_board[row][col] = 0
             elif sum == 2:
@@ -81,6 +79,9 @@ def render(board, *, color=False, alive = '#', dead = '-', erase=False):
 
 
 if __name__ == '__main__':
+    from os import system
+    from time import sleep
+
     board = random_state(70,35, alive_threashold=0.7)
     render(board, color=True)
     while True:

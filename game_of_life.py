@@ -81,10 +81,25 @@ def render(board, *, color=False, alive = '#', dead = '-', erase=False):
 if __name__ == '__main__':
     from os import system
     from time import sleep
+    import argparse
 
-    board = random_state(70,35, alive_threashold=0.7)
-    render(board, color=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-W', '--width', type=int, help='specify width of board')
+    parser.add_argument('-H', '--height', type=int, help='specify height of board')
+    parser.add_argument('-C', '--use-color', action='store_true', help='use color when rendering')
+    parser.add_argument('-R', '--refresh', '--clear', action='store_true', help='clear/refresh terminal between each rendering')
+    parser.add_argument('-A', '--alive-threashold', type=float, help='probability of a cell not being alive when generating the board')
+
+    args = parser.parse_args()
+    width  = args.width if args.width else 60
+    height = args.height if args.height else 30
+    color = args.use_color
+    erase = args.refresh
+    alive_threashold = args.alive_threashold if args.alive_threashold else 0.5
+
+    board = random_state(width, height, alive_threashold=alive_threashold)
+    render(board, color=color)
     while True:
         board = next_board_state(board)
-        render(board, color=True, erase=True)
+        render(board, color=color, erase=erase)
         sleep(0.05)
